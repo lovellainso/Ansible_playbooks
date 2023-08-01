@@ -1,0 +1,36 @@
+### Through bash, connect to the VM via SSH
+### make your SSH key has already been added to the VM instance
+
+ssh -i ~/.ssh/id_rsa linso@34.85.177.139   # CHANGE username to your local uname, and IP to the VM external IP
+
+### In the VM through WSL, install Ansible
+sudo apt update
+sudo apt install ansible
+
+### Create Ansible folder in the VM directory
+mkdir Ansible
+
+
+### if you want to copy your local Ansible files to the VM Ansible folder
+### /mnt/c/Ansible  is the location of your Ansible folder in your local file
+### /home/linso   -- the path to your VM home directory
+
+scp -r /mnt/c/Ansible linso@34.85.177.139:/home/linso/Ansible
+
+
+### Ansible check in your VM --  this is not necessary
+
+ansible-playbook -i /mnt/c/Ansible/inventory/hosts.txt /mnt/c/Ansible/playbooks/check_ansible.yaml --private-key=~/.ssh/id_rsa
+
+
+## run GPU install yaml
+ansible-playbook -i /mnt/c/Ansible/inventory/hosts.txt /mnt/c/Ansible/playbooks/GPU_install.yaml --private-key=~/.ssh/id_rsa
+
+
+### install python dependencies 
+
+ansible-playbook -i /mnt/c/Ansible/inventory/hosts.txt /mnt/c/Ansible/playbooks/install_dependencies.yaml --private-key=~/.ssh/id_rsa
+
+
+## verify installation do this in bash
+sudo nvidia-smi

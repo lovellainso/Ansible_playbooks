@@ -1,0 +1,25 @@
+---
+- name: Install NVIDIA GPU drivers on Linux VM
+  hosts: 34.85.177.139   # instance-9 in VM
+  become: true 
+
+  tasks:
+    - name: Ensure Python3 is installed
+      package:
+        name: python3
+        state: present
+
+    - name: Download the installation script
+      get_url:
+        url: https://raw.githubusercontent.com/GoogleCloudPlatform/compute-gpu-installation/main/linux/install_gpu_driver.py
+        dest: /tmp/install_gpu_driver.py
+
+    - name: Run the installation script
+      command: python3 /tmp/install_gpu_driver.py
+      args:
+        creates: /usr/bin/nvidia-smi  # Check if nvidia-smi is already installed
+      register: install_output
+      ignore_errors: yes  # Ignore errors since the script might restart the VM
+
+    - name: Verify the installation
+      command: sudo nvidia-smi   # we can do this in the VM to confirm installation
