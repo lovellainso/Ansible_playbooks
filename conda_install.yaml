@@ -1,0 +1,35 @@
+---
+- name: Install Miniconda
+  hosts: all  # Replace with appropriate hosts or groups from your inventory
+  gather_facts: yes
+  become: yes
+  vars:
+    final_python: 3.9  # Replace with your desired Python version
+  tasks:
+    - name: Include the input for the python version and the CPU architecture
+      set_fact:
+        cpu_arch: "{{ ansible_architecture | default('x86_64') }}"
+
+    - name: Download Miniconda
+      get_url:
+        url: "https://repo.anaconda.com/miniconda/Miniconda3-py{{ final_python | replace('.', '') }}_23.5.2-0-Linux-{{ cpu_arch }}.sh"
+        dest: "{{ ansible_env.HOME }}/miniconda.sh"
+
+    - name: Installing Miniconda
+      shell: "bash {{ ansible_env.HOME }}/miniconda.sh -b -p {{ ansible_env.HOME }}/miniconda"
+      args:
+        creates: "{{ ansible_env.HOME }}/miniconda"
+
+    - name: Adding Miniconda to the system path
+      lineinfile:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+        line: 'export PATH="{{ ansible_env.HOME }}/miniconda/bin:$PATH"'
+        state: present
+      register: lineinfile_result
+      changed_when: lineinfile_result is changed
+
+    - name: Creating Conda environment 'test'
+      shell: "conda create -y -n test python={{ final_python }}"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/miniconda/bin:$PATH"
+
